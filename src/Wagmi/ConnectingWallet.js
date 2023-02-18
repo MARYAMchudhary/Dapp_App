@@ -61,9 +61,7 @@ function ConnectingWallet() {
       localStorage.setItem("blockchain", JSON.stringify(TransactionData || {}));
     }
 
-    setstoreData((TransactionData) => {
-      return TransactionData;
-    });
+    setstoreData(TransactionData);
   }, [waitTransaction]);
   return (
     <div>
