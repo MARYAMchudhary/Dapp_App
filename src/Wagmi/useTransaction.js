@@ -16,12 +16,13 @@ function useTransaction() {
       value: debouncedAmount
         ? ethers.utils.parseEther(debouncedAmount)
         : undefined,
-      // value: (value * 1e18).toString(),
+      // value: (value * 1e18).toString(), return in wei we requite in ETH
     },
   });
   console.log(config, "here is the config");
-  const { data, isSuccess, sendTransaction } = useSendTransaction(config);
-
+  const { data, isSuccess, sendTransaction, status } =
+    useSendTransaction(config);
+  console.log(status, "its status of sending tracsacton");
   //!USE WAIT FOR TRANSACTION
   const { data: waitTransaction } = useWaitForTransaction({
     hash: data?.hash,
@@ -36,6 +37,8 @@ function useTransaction() {
     value,
     isSuccess,
     data,
+    config,
+    status,
   };
 }
 

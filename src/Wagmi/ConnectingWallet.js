@@ -16,15 +16,18 @@ import {
 } from "@mui/material";
 
 import { ethers } from "ethers";
-import { useBalance } from "wagmi";
+import { useBalance, useNetwork, useSwitchNetwork } from "wagmi";
 
 import useConnectWallet from "./useConnectWallet";
 import useTransaction from "./useTransaction";
+import { useDebounce } from "use-debounce";
 
 function ConnectingWallet() {
   const [toggle, settoggle] = useState(0);
+  const [convertEth, setconvertEth] = useState("");
   const [storeData, setstoreData] = useState([]);
-
+  const [getStatus, setgetStatus] = useState("pending");
+  const [debouncedAmount] = useDebounce(convertEth, 500);
   const {
     connect,
     connectors,
@@ -43,7 +46,9 @@ function ConnectingWallet() {
     to,
     value,
     isSuccess,
-    data,
+    data, //!its transaction hash
+    config,
+    status,
   } = useTransaction();
   const { data: balance } = useBalance({
     address: address,
@@ -52,15 +57,20 @@ function ConnectingWallet() {
   const handleDisconnect = () => {
     disconnect();
   };
-
+ 
+    
   useEffect(() => {
-    let TransactionData = JSON.parse(localStorage.getItem("blockchain")) || [];
-
+       let TransactionData =
+         JSON.parse(localStorage.getItem("blockchain")) || [];
     if (waitTransaction?.blockNumber) {
-      TransactionData.push(waitTransaction);
-      localStorage.setItem("blockchain", JSON.stringify(TransactionData || {}));
-    }
-
+        console.log(waitTransaction?.blockNumber,"heloooooooooooooooooooo");
+        TransactionData.push(waitTransaction);
+        localStorage.setItem("blockchain", JSON.stringify(TransactionData));
+        // setgetStatus("success");
+      }
+    //
+    // let TransactionData = JSON.parse(localStorage.getItem("blockchain")) || [];
+    // console.log(TransactionData, "check Transaction Data");
     setstoreData(TransactionData);
   }, [waitTransaction]);
   return (
@@ -88,7 +98,7 @@ function ConnectingWallet() {
             ) : (
               <>
                 <div>
-                  Your Account address : <h4>{address}</h4>
+                  Your Account adddress : <h4>{address}</h4>
                   Your Account Balance:
                   <h4>{parseFloat(balance?.formatted).toFixed(2)}ETH</h4>
                 </div>
@@ -179,7 +189,7 @@ function ConnectingWallet() {
                   marginTop: "1rem",
                 }}
               >
-                Transaction: {JSON.stringify(data)}
+                Transaction: {JSON.stringify(data.hash)}
               </div>
             )}
           </Paper>
@@ -198,26 +208,45 @@ function ConnectingWallet() {
                   <TableCell>from</TableCell>
                   <TableCell>To</TableCell>
                   <TableCell align="right">Block No</TableCell>
-                  <TableCell align="right">TXN fee</TableCell>
+                  <TableCell align="right">TXN Index</TableCell>
+                  <TableCell>status</TableCell>
+                  {/* <TableCell>TXN fee</TableCell> */}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {storeData &&
-                  storeData.map((row) => (
+                {data && (
+                  <>
+                    {" "}
+                    <TableRow>
+                      <TableCell>{data?.hash}</TableCell>
+                      <TableCell>Pending...</TableCell>
+                      <TableCell>Pending...</TableCell>
+                      <TableCell>Pending...</TableCell>
+                      <TableCell>Pending...</TableCell>
+                      <TableCell>Pending...</TableCell>
+                    </TableRow>
+                  </>
+                )}
+                {storeData.map((row) => {
+                  return (
                     <TableRow
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                      sx={{
+                        "&:last-child td, &:last-child th": { border: 0 },
+                      }}
                     >
                       <TableCell component="th" scope="row">
-                        {row.transactionHash.slice(0, 22) + "..."}
+                        {row.transactionHash?.slice(0, 30) + "..."}
                       </TableCell>
-                      <TableCell>{row.to.slice(0, 20) + "..."}</TableCell>
-                      <TableCell>{row.from.slice(0, 20) + "..."}</TableCell>
+                      <TableCell>{row.to?.slice(0, 20) + "..."}</TableCell>
+                      <TableCell>{row.from?.slice(0, 20) + "..."}</TableCell>
                       <TableCell align="right">{row.blockNumber}</TableCell>
                       <TableCell align="right">
                         {row.transactionIndex}
                       </TableCell>
+                      <TableCell>success</TableCell>
                     </TableRow>
-                  ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>

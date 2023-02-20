@@ -18,19 +18,27 @@ import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc";
 
 import ConnectingWallet from "./Wagmi/ConnectingWallet";
 import { Route, Routes } from "react-router-dom";
+import WriteContractWagmi from "./WriteContract/WriteContractWagmi";
+// import { bscTestnet, optimism } from "wagmi/chains";
+import { bscTestnet } from "@wagmi/core/chains";
 
 function App() {
   const { provider, chains, webSocketProvider } = configureChains(
-    [mainnet, goerli],
+    [mainnet, goerli, bscTestnet],
     [
       jsonRpcProvider({
-        rpc: () => ({
-          http: `https://goerli.infura.io/v3/a50debb14c734109b08e35c65f591353`,
+        rpc: (chain) => ({
+          // http: `https://goerli.infura.io/v3/a50debb14c734109b08e35c65f591353`,
+          http:
+            chain.id === 97
+              ? `https://data-seed-prebsc-1-s1.binance.org:8545`
+              : `https:rpc.ankr.com/eth_goerli`,
         }),
       }),
 
       publicProvider(),
     ]
+    //  network block skew detected; skipping block events (emitted=8523143 blockNumber27396043)
   );
   const wagmiClient = createClient({
     provider,
@@ -38,13 +46,13 @@ function App() {
     connectors: [
       // new InjectedConnector({
       //   chains,
-
       // }),
       // new CoinbaseWalletConnector({ chains }),
       new MetaMaskConnector({
         chains,
         options: {
-          shimDisconnect: true,
+          shimChainChangedDisconnect: false,
+          shimDisconnect: false,
           UNSTABLE_shimOnConnectSelectAccount: true,
         },
       }),
@@ -57,7 +65,7 @@ function App() {
         {/* <ReadSmartWagmiContract /> */}
         <Routes>
           <Route path="/" element={<ConnectingWallet />} />
-          {/* <Route path="/transationHistory" element={<TransactionHistory />} /> */}
+          {/* <Route path="/" element={<WriteContractWagmi />} /> */}
         </Routes>
       </WagmiConfig>
       {/* <ConnectingMetamask/> */}
