@@ -24,10 +24,10 @@ import { useDebounce } from "use-debounce";
 
 function ConnectingWallet() {
   const [toggle, settoggle] = useState(0);
-  const [convertEth, setconvertEth] = useState("");
+ 
   const [storeData, setstoreData] = useState([]);
-  const [getStatus, setgetStatus] = useState("pending");
-  const [debouncedAmount] = useDebounce(convertEth, 500);
+
+
   const {
     connect,
     connectors,
@@ -36,6 +36,8 @@ function ConnectingWallet() {
     address,
     isConnected,
     disconnect,
+    dissconnected,
+    status,
   } = useConnectWallet();
 
   const {
@@ -47,30 +49,28 @@ function ConnectingWallet() {
     value,
     isSuccess,
     data, //!its transaction hash
-    config,
-    status,
+    reset,
   } = useTransaction();
   const { data: balance } = useBalance({
     address: address,
   });
-
+  console.log(data, "its dissconnected");
+  console.log(status, "its status");
   const handleDisconnect = () => {
     disconnect();
+    setValue("");
+    setto("");
   };
- 
-    
+
   useEffect(() => {
-       let TransactionData =
-         JSON.parse(localStorage.getItem("blockchain")) || [];
+    let TransactionData = JSON.parse(localStorage.getItem("blockchain")) || [];
+    console.log(TransactionData, "its data from localstorage");
     if (waitTransaction?.blockNumber) {
-        console.log(waitTransaction?.blockNumber,"heloooooooooooooooooooo");
-        TransactionData.push(waitTransaction);
-        localStorage.setItem("blockchain", JSON.stringify(TransactionData));
-        // setgetStatus("success");
-      }
-    //
-    // let TransactionData = JSON.parse(localStorage.getItem("blockchain")) || [];
-    // console.log(TransactionData, "check Transaction Data");
+      TransactionData.push(waitTransaction);
+      localStorage.setItem("blockchain", JSON.stringify(TransactionData));
+      reset();
+    }
+
     setstoreData(TransactionData);
   }, [waitTransaction]);
   return (
@@ -153,6 +153,7 @@ function ConnectingWallet() {
               sx={{ marginY: "1rem" }}
               id="filled-basic"
               label="Amount"
+              type={"number"}
               variant="filled"
               value={value}
               onChange={(e) => setValue(e.target.value)}
@@ -166,8 +167,11 @@ function ConnectingWallet() {
                 onClick={() => {
                   if (ethers.utils.isAddress(to) === true) {
                     sendTransaction?.();
+                    setValue("");
+                    setto("");
                   }
                 }}
+                disabled={!sendTransaction}
               >
                 Send
               </Button>
@@ -195,7 +199,7 @@ function ConnectingWallet() {
           </Paper>
         </Container>
       </Box>
-      {toggle === 1 ? (
+      {toggle == 1 ? (
         <>
           <Typography variant="h4" sx={{ marginTop: "2rem" }}>
             Transaction History
@@ -210,43 +214,48 @@ function ConnectingWallet() {
                   <TableCell align="right">Block No</TableCell>
                   <TableCell align="right">TXN Index</TableCell>
                   <TableCell>status</TableCell>
-                  {/* <TableCell>TXN fee</TableCell> */}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data && (
+                {data ? (
                   <>
-                    {" "}
                     <TableRow>
                       <TableCell>{data?.hash}</TableCell>
-                      <TableCell>Pending...</TableCell>
-                      <TableCell>Pending...</TableCell>
-                      <TableCell>Pending...</TableCell>
-                      <TableCell>Pending...</TableCell>
+                      <TableCell></TableCell>
+                      <TableCell></TableCell>
+                      <TableCell></TableCell>
+                      <TableCell></TableCell>
                       <TableCell>Pending...</TableCell>
                     </TableRow>
                   </>
+                ) : storeData.length + 1 ? (
+                  <>
+                    {storeData.map((row) => {
+                      return (
+                        <TableRow
+                          sx={{
+                            "&:last-child td, &:last-child th": { border: 0 },
+                          }}
+                        >
+                          <TableCell component="th" scope="row">
+                            {row.transactionHash?.slice(0, 30) + "..."}
+                          </TableCell>
+                          <TableCell>{row.to?.slice(0, 20) + "..."}</TableCell>
+                          <TableCell>
+                            {row.from?.slice(0, 20) + "..."}
+                          </TableCell>
+                          <TableCell align="right">{row.blockNumber}</TableCell>
+                          <TableCell align="right">
+                            {row.transactionIndex}
+                          </TableCell>
+                          <TableCell>success</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </>
+                ) : (
+                  ""
                 )}
-                {storeData.map((row) => {
-                  return (
-                    <TableRow
-                      sx={{
-                        "&:last-child td, &:last-child th": { border: 0 },
-                      }}
-                    >
-                      <TableCell component="th" scope="row">
-                        {row.transactionHash?.slice(0, 30) + "..."}
-                      </TableCell>
-                      <TableCell>{row.to?.slice(0, 20) + "..."}</TableCell>
-                      <TableCell>{row.from?.slice(0, 20) + "..."}</TableCell>
-                      <TableCell align="right">{row.blockNumber}</TableCell>
-                      <TableCell align="right">
-                        {row.transactionIndex}
-                      </TableCell>
-                      <TableCell>success</TableCell>
-                    </TableRow>
-                  );
-                })}
               </TableBody>
             </Table>
           </TableContainer>
