@@ -1,45 +1,62 @@
 import { ethers } from "ethers";
 import React, { useState } from "react";
 import {
-  usePrepareSendTransaction,
-  useSendTransaction,
+  useContractWrite,
+  usePrepareContractWrite,
   useWaitForTransaction,
 } from "wagmi";
 import { useDebounce } from "use-debounce";
+
+import ABIGOERLI from "./ABI/GoerliAbi.json";
 function useTransaction() {
   const [to, setto] = useState("");
   const [value, setValue] = useState("");
   const [debouncedAmount] = useDebounce(value, 500);
-  const { config } = usePrepareSendTransaction({
-    request: {
-      to,
-      value: debouncedAmount
-        ? ethers.utils.parseEther(debouncedAmount)
-        : "",
-      // value: (value * 1e18).toString(), return in wei we requite in ETH
-    },
+  console.log(debouncedAmount, "its debounceAmount");
+  const {
+    config,
+    isError: isPrepareError,
+    error: prepareError,
+  } = usePrepareContractWrite({
+    address: "0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc",
+    abi: ABIGOERLI,
+    functionName: "transfer",
+    args: [to, debouncedAmount && ethers.utils.parseEther(debouncedAmount)],
   });
-  console.log(config, "here is the config");
-  const { data, isSuccess, sendTransaction, status, reset } =
-    useSendTransaction(config);
+  // console.log(ABIGOERLI);
+
+  const {
+    data: datacontractWrite,
+    write,
+    error: contractwriteError,
+    isError: contractwriteisError,
+  } = useContractWrite(config);
 
   //!USE WAIT FOR TRANSACTION
-  const { data: waitTransaction } = useWaitForTransaction({
-    hash: data?.hash,
+  const {
+    data: waitTransaction,
+    isLoading: contractWriteLoading,
+    isSuccess: contractWriteSuccess,
+  } = useWaitForTransaction({
+    hash: datacontractWrite?.hash,
   });
 
   return {
-    sendTransaction,
+    contractwriteError,
+    contractwriteisError,
+    isPrepareError,
+    prepareError,
+    write,
     setValue,
     setto,
     waitTransaction,
     to,
     value,
-    isSuccess,
-    data,
+    datacontractWrite,
+    contractWriteLoading,
     config,
-    status,
-    reset,
+
+    contractWriteSuccess,
   };
 }
 

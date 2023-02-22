@@ -53,7 +53,6 @@ function App() {
     <div>
       <WagmiConfig client={wagmiClient}>
         <ConnectingWallet />
-    
       </WagmiConfig>
     </div>
   );

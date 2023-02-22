@@ -16,17 +16,14 @@ import {
 } from "@mui/material";
 
 import { ethers } from "ethers";
-import { useBalance, useNetwork, useSwitchNetwork } from "wagmi";
-
+import { useBalance } from "wagmi";
 import useConnectWallet from "./useConnectWallet";
 import useTransaction from "./useTransaction";
-import { useDebounce } from "use-debounce";
 
 function ConnectingWallet() {
   const [toggle, settoggle] = useState(0);
- 
-  const [storeData, setstoreData] = useState([]);
 
+  const [storeData, setstoreData] = useState([]);
 
   const {
     connect,
@@ -36,26 +33,27 @@ function ConnectingWallet() {
     address,
     isConnected,
     disconnect,
-    dissconnected,
-    status,
   } = useConnectWallet();
 
   const {
-    sendTransaction,
     setValue,
     setto,
     waitTransaction,
+    contractWriteLoading,
     to,
     value,
     isSuccess,
-    data, //!its transaction hash
+    data, //!its native transaction hash
     reset,
+    contractWriteSuccess,
+    write,
+    datacontractWrite,
   } = useTransaction();
+
   const { data: balance } = useBalance({
     address: address,
   });
-  console.log(data, "its dissconnected");
-  console.log(status, "its status");
+
   const handleDisconnect = () => {
     disconnect();
     setValue("");
@@ -68,7 +66,7 @@ function ConnectingWallet() {
     if (waitTransaction?.blockNumber) {
       TransactionData.push(waitTransaction);
       localStorage.setItem("blockchain", JSON.stringify(TransactionData));
-      reset();
+      reset?.();
     }
 
     setstoreData(TransactionData);
@@ -102,6 +100,7 @@ function ConnectingWallet() {
                   Your Account Balance:
                   <h4>{parseFloat(balance?.formatted).toFixed(2)}ETH</h4>
                 </div>
+
                 <div>
                   {" "}
                   <Button
@@ -121,6 +120,19 @@ function ConnectingWallet() {
             >
               Send Transactions
             </Typography>
+
+            {contractWriteSuccess && (
+              <div>
+                Successfully minted your NFT!
+                <div>
+                  <a
+                    href={`https://goerli.etherscan.io/tx/${datacontractWrite?.hash}`}
+                  >
+                    GO TO Etherscan
+                  </a>
+                </div>
+              </div>
+            )}
             <TextField
               sx={{ marginY: "2rem" }}
               id="filled-basic"
@@ -164,14 +176,16 @@ function ConnectingWallet() {
               <Button
                 variant="contained"
                 fullWidth
-                onClick={() => {
-                  if (ethers.utils.isAddress(to) === true) {
-                    sendTransaction?.();
-                    setValue("");
-                    setto("");
-                  }
-                }}
-                disabled={!sendTransaction}
+                onClick={() => write?.()}
+                disabled={!write || contractWriteLoading}
+                // onClick={() => {
+                //   if (ethers.utils.isAddress(to) === true) {
+                //     sendTransaction?.();
+                //     setValue("");
+                //     setto("");
+                //   }
+                // }}
+                // disabled={!sendTransaction}
               >
                 Send
               </Button>
