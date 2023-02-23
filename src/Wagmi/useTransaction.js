@@ -1,18 +1,26 @@
 import { ethers } from "ethers";
 import React, { useState } from "react";
 import {
+  useContractRead,
   useContractWrite,
   usePrepareContractWrite,
   useWaitForTransaction,
 } from "wagmi";
 import { useDebounce } from "use-debounce";
-
 import ABIGOERLI from "./ABI/GoerliAbi.json";
 function useTransaction() {
   const [to, setto] = useState("");
   const [value, setValue] = useState("");
   const [debouncedAmount] = useDebounce(value, 500);
   console.log(debouncedAmount, "its debounceAmount");
+  const { data, isError, isLoading } = useContractRead({
+    address: "0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc",
+    abi: ABIGOERLI,
+    functionName: "balanceOf",
+    args: ["0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc"],
+  });
+
+  console.log(data, "its contract read function");
   const {
     config,
     isError: isPrepareError,
@@ -30,6 +38,7 @@ function useTransaction() {
     write,
     error: contractwriteError,
     isError: contractwriteisError,
+    reset,
   } = useContractWrite(config);
 
   //!USE WAIT FOR TRANSACTION
@@ -40,7 +49,7 @@ function useTransaction() {
   } = useWaitForTransaction({
     hash: datacontractWrite?.hash,
   });
-
+console.log(datacontractWrite);
   return {
     contractwriteError,
     contractwriteisError,
@@ -51,6 +60,7 @@ function useTransaction() {
     setto,
     waitTransaction,
     to,
+    reset,
     value,
     datacontractWrite,
     contractWriteLoading,

@@ -60,16 +60,17 @@ function ConnectingWallet() {
     setto("");
   };
 
+  let TransactionData = JSON.parse(localStorage.getItem("blockchain")) || [];
+  console.log(TransactionData, "its data from localstorage");
   useEffect(() => {
-    let TransactionData = JSON.parse(localStorage.getItem("blockchain")) || [];
-    console.log(TransactionData, "its data from localstorage");
-    if (waitTransaction?.blockNumber) {
+    console.log(waitTransaction);
+    if (!!waitTransaction) {
       TransactionData.push(waitTransaction);
-      localStorage.setItem("blockchain", JSON.stringify(TransactionData));
-      reset?.();
+      localStorage.setItem("blockchain", JSON.stringify(TransactionData) || {});
+      reset();
     }
+    // setstoreData(TransactionData);
 
-    setstoreData(TransactionData);
   }, [waitTransaction]);
   return (
     <div>
@@ -231,10 +232,10 @@ function ConnectingWallet() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data ? (
+                {datacontractWrite ? (
                   <>
                     <TableRow>
-                      <TableCell>{data?.hash}</TableCell>
+                      <TableCell>{datacontractWrite?.hash}</TableCell>
                       <TableCell></TableCell>
                       <TableCell></TableCell>
                       <TableCell></TableCell>
@@ -242,9 +243,9 @@ function ConnectingWallet() {
                       <TableCell>Pending...</TableCell>
                     </TableRow>
                   </>
-                ) : storeData.length + 1 ? (
+                ) : TransactionData.length + 1 ? (
                   <>
-                    {storeData.map((row) => {
+                    {TransactionData.map((row) => {
                       return (
                         <TableRow
                           sx={{
