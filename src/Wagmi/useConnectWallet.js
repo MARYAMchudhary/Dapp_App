@@ -1,7 +1,12 @@
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useBalance, useConnect, useDisconnect } from "wagmi";
 
 function useConnectWallet() {
-  const { address, isConnected } = useAccount();
+  const { address, connector,isConnected } = useAccount();
+    const { data, isError } = useBalance({
+      address: address,
+    });
+    console.log(data, "its wallet Balnace........");
+
   const {
     disconnect,
     isSuccess: dissconnected,

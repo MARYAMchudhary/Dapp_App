@@ -48,6 +48,9 @@ function ConnectingWallet() {
     contractWriteSuccess,
     write,
     datacontractWrite,
+    tokenAddress,
+    contractReadBalance,
+    settokenAddress,
   } = useTransaction();
 
   const { data: balance } = useBalance({
@@ -70,7 +73,6 @@ function ConnectingWallet() {
       reset();
     }
     // setstoreData(TransactionData);
-
   }, [waitTransaction]);
   return (
     <div>
@@ -137,6 +139,15 @@ function ConnectingWallet() {
             <TextField
               sx={{ marginY: "2rem" }}
               id="filled-basic"
+              label="token Address"
+              variant="filled"
+              value={tokenAddress}
+              onChange={(e) => settokenAddress(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              sx={{ marginY: "2rem" }}
+              id="filled-basic"
               label="Reciever Address"
               variant="filled"
               value={to}
@@ -169,16 +180,30 @@ function ConnectingWallet() {
               type={"number"}
               variant="filled"
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => {
+                setValue(e.target.value);
+              }}
               fullWidth
             />
-
-            <Box>
+            {contractReadBalance < value && (
+              <code
+                style={{
+                  backgroundColor: "rgb(255, 104, 104)",
+                  color: "#fff",
+                  marginBottom: "2%",
+                }}
+              >
+                your account have not enough tokens
+              </code>
+            )}
+            <Box mt={2}>
               <Button
                 variant="contained"
                 fullWidth
                 onClick={() => write?.()}
-                disabled={!write || contractWriteLoading}
+                disabled={
+                  !write || contractWriteLoading || contractReadBalance < value
+                }
                 // onClick={() => {
                 //   if (ethers.utils.isAddress(to) === true) {
                 //     sendTransaction?.();
@@ -214,7 +239,7 @@ function ConnectingWallet() {
           </Paper>
         </Container>
       </Box>
-      {toggle == 1 ? (
+      {toggle === 1 ? (
         <>
           <Typography variant="h4" sx={{ marginTop: "2rem" }}>
             Transaction History

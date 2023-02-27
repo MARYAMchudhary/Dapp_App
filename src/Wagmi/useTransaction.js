@@ -1,5 +1,5 @@
-import { ethers } from "ethers";
-import React, { useState } from "react";
+import { BigNumber, ethers } from "ethers";
+import { useState } from "react";
 import {
   useContractRead,
   useContractWrite,
@@ -11,27 +11,47 @@ import ABIGOERLI from "./ABI/GoerliAbi.json";
 function useTransaction() {
   const [to, setto] = useState("");
   const [value, setValue] = useState("");
+  const [tokenAddress, settokenAddress] = useState("");
   const [debouncedAmount] = useDebounce(value, 500);
-  console.log(debouncedAmount, "its debounceAmount");
-  const { data, isError, isLoading } = useContractRead({
-    address: "0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc",
-    abi: ABIGOERLI,
-    functionName: "balanceOf",
-    args: ["0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc"],
-  });
 
-  console.log(data, "its contract read function");
   const {
     config,
+    data: datausePrepareContractWrite,
     isError: isPrepareError,
     error: prepareError,
   } = usePrepareContractWrite({
-    address: "0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc",
+    address: tokenAddress,
     abi: ABIGOERLI,
-    functionName: "transfer",
+    functionName: "mint",
+    // args: [to],
     args: [to, debouncedAmount && ethers.utils.parseEther(debouncedAmount)],
+    // overrides: {
+    //   value:
+    //     debouncedAmount &&
+    //     ethers.utils.parseEther(debouncedAmount),
+    // },
   });
-  // console.log(ABIGOERLI);
+
+  //!USE CONTRACT READ
+  const {
+    data: contractReadBalance,
+    isError,
+    isLoading,
+  } = useContractRead({
+    address: tokenAddress,
+    abi: ABIGOERLI,
+    functionName: "balanceOf",
+    args: [tokenAddress],
+  });
+
+  console.log(
+    contractReadBalance,
+    // BigNumber.toString(data),
+    // ethers.utils.formatUnits(data?.toString(), "ether"),
+    "its contract read function"
+  );
+  console.log(datausePrepareContractWrite, "datausePrepareContractWrite");
+  console.log(config, "configusePrepareContractWrite");
 
   const {
     data: datacontractWrite,
@@ -49,7 +69,7 @@ function useTransaction() {
   } = useWaitForTransaction({
     hash: datacontractWrite?.hash,
   });
-console.log(datacontractWrite);
+  console.log(datacontractWrite);
   return {
     contractwriteError,
     contractwriteisError,
@@ -65,7 +85,9 @@ console.log(datacontractWrite);
     datacontractWrite,
     contractWriteLoading,
     config,
-
+    contractReadBalance,
+    settokenAddress,
+    tokenAddress,
     contractWriteSuccess,
   };
 }
