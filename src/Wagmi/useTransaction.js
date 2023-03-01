@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  useBalance,
   useContractRead,
   useContractWrite,
   usePrepareContractWrite,
@@ -10,34 +9,29 @@ import {
 import { useDebounce } from "use-debounce";
 import ABIGOERLI from "./ABI/GoerliAbi.json";
 import { ethers } from "ethers";
-import useConnectWallet from "./useConnectWallet";
 function useTransaction() {
   const [tokenAddress, settokenAddress] = useState("");
   const [to, setto] = useState("");
   const [valueToken, setValueToken] = useState("");
   const [debouncedAmount] = useDebounce(valueToken, 500);
-  const { address } = useConnectWallet();
-  const { data: balance } = useBalance({
-    address: address,
-    token: tokenAddress,
-  });
 
   const {
     config,
+    data: datausePrepareContractWrite,
     isError: isPrepareError,
     error: prepareError,
   } = usePrepareContractWrite({
     address: tokenAddress,
     abi: ABIGOERLI,
     functionName: "mint",
+
     args: [
       to,
-      // debouncedAmount &&
-      // ethers.utils.parseEther(debouncedAmount.toString()),
-      ethers.utils.parseEther("0.1"),
+      valueToken
+      // debouncedAmount && ethers.utils.formatEther(debouncedAmount.toString()),
     ],
   });
-
+  console.log(datausePrepareContractWrite, "hello");
   //!USE CONTRACT READ
   const { data: contractReadBalance } = useContractRead({
     address: tokenAddress,
@@ -52,8 +46,8 @@ function useTransaction() {
     error: contractwriteError,
     isError: contractwriteisError,
     reset,
-  } = useContractWrite(config);
-
+  } = useContractWrite({ ...config });
+  console.log(datacontractWrite, "its write method of contractWrite");
   //!USE WAIT FOR TRANSACTION
   const {
     data: waitTransaction,
@@ -62,6 +56,7 @@ function useTransaction() {
   } = useWaitForTransaction({
     hash: datacontractWrite?.hash,
   });
+  console.log(waitTransaction);
 
   return {
     contractwriteError,
@@ -74,9 +69,8 @@ function useTransaction() {
     waitTransaction,
     to,
     reset,
-    debouncedAmount,
-    // valueToken,
-    balance,
+    // debouncedAmount,
+    valueToken,
     datacontractWrite,
     contractWriteLoading,
     config,

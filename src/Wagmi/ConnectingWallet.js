@@ -23,8 +23,6 @@ import useTransaction from "./useTransaction";
 function ConnectingWallet() {
   const [toggle, settoggle] = useState(0);
 
-  const [storeData, setstoreData] = useState([]);
-
   const {
     connect,
     connectors,
@@ -36,13 +34,12 @@ function ConnectingWallet() {
   } = useConnectWallet();
 
   const {
-  setValueToken,
+    setValueToken,
     setto,
     waitTransaction,
-    contractWriteLoading,
     to,
-    debouncedAmount,
-    // value,
+    // debouncedAmount,
+    valueToken,
     isSuccess,
     data, //!its native transaction hash
     reset,
@@ -50,7 +47,6 @@ function ConnectingWallet() {
     write,
     datacontractWrite,
     tokenAddress,
-    contractReadBalance,
     settokenAddress,
   } = useTransaction();
 
@@ -58,7 +54,7 @@ function ConnectingWallet() {
     address: address,
     token: tokenAddress,
   });
-  // console.log(balance, "its balnace of erc20token");
+
   const handleDisconnect = () => {
     disconnect();
     setValueToken("");
@@ -183,15 +179,13 @@ function ConnectingWallet() {
               label="Amount"
               type={"number"}
               variant="filled"
-              value={debouncedAmount}
-              // onChange={handleChange}
+              value={valueToken}
               onChange={(e) => {
                 setValueToken(e.target.value);
-                console.log(debouncedAmount, "its value of token");
               }}
               fullWidth
             />
-            {debouncedAmount > balance?.formatted && (
+            {Number(valueToken) > Number(balance?.formatted) && (
               <code
                 style={{
                   backgroundColor: "rgb(255, 104, 104)",
@@ -206,20 +200,13 @@ function ConnectingWallet() {
               <Button
                 variant="contained"
                 fullWidth
-                onClick={() => write?.()}
-                disabled={
-                  !write ||
-                  contractWriteLoading ||
-                  contractReadBalance < debouncedAmount
-                }
-                // onClick={() => {
-                //   if (ethers.utils.isAddress(to) === true) {
-                //     sendTransaction?.();
-                //     setValue("");
-                //     setto("");
-                //   }
-                // }}
-                // disabled={!sendTransaction}
+                onClick={() => {
+                  write?.();
+                  setValueToken("");
+                  settokenAddress("");
+                  setto("");
+                }}
+                disabled={!write}
               >
                 Send
               </Button>
