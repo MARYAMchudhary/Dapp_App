@@ -15,7 +15,6 @@ import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 
 
 import ConnectingWallet from "./Wagmi/ConnectingWallet";
-import { Route, Routes } from "react-router-dom";
 import { bscTestnet } from "@wagmi/core/chains";
 
 function App() {

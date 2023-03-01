@@ -36,12 +36,13 @@ function ConnectingWallet() {
   } = useConnectWallet();
 
   const {
-    setValue,
+  setValueToken,
     setto,
     waitTransaction,
     contractWriteLoading,
     to,
-    value,
+    debouncedAmount,
+    // value,
     isSuccess,
     data, //!its native transaction hash
     reset,
@@ -55,25 +56,25 @@ function ConnectingWallet() {
 
   const { data: balance } = useBalance({
     address: address,
+    token: tokenAddress,
   });
-
+  // console.log(balance, "its balnace of erc20token");
   const handleDisconnect = () => {
     disconnect();
-    setValue("");
+    setValueToken("");
     setto("");
   };
 
   let TransactionData = JSON.parse(localStorage.getItem("blockchain")) || [];
-  console.log(TransactionData, "its data from localstorage");
   useEffect(() => {
-    console.log(waitTransaction);
+    // console.log(waitTransaction);
     if (!!waitTransaction) {
       TransactionData.push(waitTransaction);
       localStorage.setItem("blockchain", JSON.stringify(TransactionData) || {});
       reset();
     }
-    // setstoreData(TransactionData);
   }, [waitTransaction]);
+
   return (
     <div>
       <Box mt={2}>
@@ -100,8 +101,11 @@ function ConnectingWallet() {
               <>
                 <div>
                   Your Account adddress : <h4>{address}</h4>
-                  Your Account Balance:
-                  <h4>{parseFloat(balance?.formatted).toFixed(2)}ETH</h4>
+                  Your {tokenAddress ? "Token" : "Account"} Balance:
+                  <h4>
+                    {parseFloat(balance?.formatted).toFixed(2)}
+                    {balance?.symbol}
+                  </h4>
                 </div>
 
                 <div>
@@ -121,7 +125,7 @@ function ConnectingWallet() {
               variant={"h4"}
               mt={2}
             >
-              Send Transactions
+              Send ERC20 Token
             </Typography>
 
             {contractWriteSuccess && (
@@ -179,13 +183,15 @@ function ConnectingWallet() {
               label="Amount"
               type={"number"}
               variant="filled"
-              value={value}
+              value={debouncedAmount}
+              // onChange={handleChange}
               onChange={(e) => {
-                setValue(e.target.value);
+                setValueToken(e.target.value);
+                console.log(debouncedAmount, "its value of token");
               }}
               fullWidth
             />
-            {contractReadBalance < value && (
+            {debouncedAmount > balance?.formatted && (
               <code
                 style={{
                   backgroundColor: "rgb(255, 104, 104)",
@@ -202,7 +208,9 @@ function ConnectingWallet() {
                 fullWidth
                 onClick={() => write?.()}
                 disabled={
-                  !write || contractWriteLoading || contractReadBalance < value
+                  !write ||
+                  contractWriteLoading ||
+                  contractReadBalance < debouncedAmount
                 }
                 // onClick={() => {
                 //   if (ethers.utils.isAddress(to) === true) {

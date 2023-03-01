@@ -1,11 +1,9 @@
-import { useAccount, useBalance, useConnect, useDisconnect } from "wagmi";
+import { useAccount,  useConnect, useDisconnect } from "wagmi";
 
 function useConnectWallet() {
-  const { address, connector,isConnected } = useAccount();
-    const { data, isError } = useBalance({
-      address: address,
-    });
-    console.log(data, "its wallet Balnace........");
+  const { address,isConnected } = useAccount();
+
+  
 
   const {
     disconnect,
@@ -13,7 +11,7 @@ function useConnectWallet() {
     status,
   } = useDisconnect({
     onSettled(data, error) {
-      // console.log("Settled", { data, error });
+      console.log("Settled", { data, error });
     },
   });
   const { connect, connectors, isLoading, pendingConnector } = useConnect();

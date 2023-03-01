@@ -1,57 +1,50 @@
-import { BigNumber, ethers } from "ethers";
 import { useState } from "react";
 import {
+  useBalance,
   useContractRead,
   useContractWrite,
   usePrepareContractWrite,
   useWaitForTransaction,
 } from "wagmi";
+
 import { useDebounce } from "use-debounce";
 import ABIGOERLI from "./ABI/GoerliAbi.json";
+import { ethers } from "ethers";
+import useConnectWallet from "./useConnectWallet";
 function useTransaction() {
-  const [to, setto] = useState("");
-  const [value, setValue] = useState("");
   const [tokenAddress, settokenAddress] = useState("");
-  const [debouncedAmount] = useDebounce(value, 500);
+  const [to, setto] = useState("");
+  const [valueToken, setValueToken] = useState("");
+  const [debouncedAmount] = useDebounce(valueToken, 500);
+  const { address } = useConnectWallet();
+  const { data: balance } = useBalance({
+    address: address,
+    token: tokenAddress,
+  });
 
   const {
     config,
-    data: datausePrepareContractWrite,
     isError: isPrepareError,
     error: prepareError,
   } = usePrepareContractWrite({
     address: tokenAddress,
     abi: ABIGOERLI,
     functionName: "mint",
-    // args: [to],
-    args: [to, debouncedAmount && ethers.utils.parseEther(debouncedAmount)],
-    // overrides: {
-    //   value:
-    //     debouncedAmount &&
-    //     ethers.utils.parseEther(debouncedAmount),
-    // },
+    args: [
+      to,
+      // debouncedAmount &&
+      // ethers.utils.parseEther(debouncedAmount.toString()),
+      ethers.utils.parseEther("0.1"),
+    ],
   });
 
   //!USE CONTRACT READ
-  const {
-    data: contractReadBalance,
-    isError,
-    isLoading,
-  } = useContractRead({
+  const { data: contractReadBalance } = useContractRead({
     address: tokenAddress,
     abi: ABIGOERLI,
     functionName: "balanceOf",
     args: [tokenAddress],
   });
-
-  console.log(
-    contractReadBalance,
-    // BigNumber.toString(data),
-    // ethers.utils.formatUnits(data?.toString(), "ether"),
-    "its contract read function"
-  );
-  console.log(datausePrepareContractWrite, "datausePrepareContractWrite");
-  console.log(config, "configusePrepareContractWrite");
 
   const {
     data: datacontractWrite,
@@ -69,19 +62,21 @@ function useTransaction() {
   } = useWaitForTransaction({
     hash: datacontractWrite?.hash,
   });
-  console.log(datacontractWrite);
+
   return {
     contractwriteError,
     contractwriteisError,
     isPrepareError,
     prepareError,
     write,
-    setValue,
+    setValueToken,
     setto,
     waitTransaction,
     to,
     reset,
-    value,
+    debouncedAmount,
+    // valueToken,
+    balance,
     datacontractWrite,
     contractWriteLoading,
     config,
