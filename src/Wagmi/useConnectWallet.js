@@ -1,9 +1,7 @@
-import { useAccount,  useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useNetwork } from "wagmi";
 
 function useConnectWallet() {
-  const { address,isConnected } = useAccount();
-
-  
+  const { address, isConnected } = useAccount();
 
   const {
     disconnect,
@@ -22,11 +20,11 @@ function useConnectWallet() {
     connect,
     connectors,
     isLoading,
+
     pendingConnector,
     disconnect,
     dissconnected,
     status,
-  
   };
 }
 

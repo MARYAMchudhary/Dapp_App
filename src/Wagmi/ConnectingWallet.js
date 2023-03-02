@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 
 import { ethers } from "ethers";
-import { useBalance } from "wagmi";
+import { useBalance, useNetwork } from "wagmi";
 import useConnectWallet from "./useConnectWallet";
 import useTransaction from "./useTransaction";
 
@@ -58,6 +58,10 @@ function ConnectingWallet() {
     token: tokenAddress,
   });
 
+  const { chain, chains } = useNetwork();
+
+  console.log(chains, "its chains information");
+  console.log(chain?.name, "its chain information");
   const handleDisconnect = () => {
     disconnect();
     setValueToken("");
@@ -80,6 +84,16 @@ function ConnectingWallet() {
       <Box mt={2}>
         <Container maxWidth="sm">
           <Paper elevation={6} sx={{ padding: "2rem" }}>
+            {chains.map((chain) => chain.name).includes(chain?.name) ? (
+              <p style={{ color: "green", fontWeight: "bold" }}>
+                you are connected to correct network
+              </p>
+            ) : (
+              <p style={{ color: "red", fontWeight: "bold" }}>
+                you are connected to incorrect network
+              </p>
+            )}
+
             {!isConnected ? (
               <div>
                 <h4>connect your wallet</h4>
@@ -127,6 +141,7 @@ function ConnectingWallet() {
                   color="secondary"
                   onClick={() => {
                     setshowNativeCurrency(1);
+                    settokenAddress("");
                   }}
                 >
                   Send Native Currency
@@ -137,7 +152,6 @@ function ConnectingWallet() {
                   color="secondary"
                   onClick={() => {
                     setshowNativeCurrency(0);
-                    settokenAddress("");
                   }}
                 >
                   Send Erc20 Token
