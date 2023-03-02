@@ -3,6 +3,8 @@ import {
   useContractRead,
   useContractWrite,
   usePrepareContractWrite,
+  usePrepareSendTransaction,
+  useSendTransaction,
   useWaitForTransaction,
 } from "wagmi";
 
@@ -13,7 +15,9 @@ function useTransaction() {
   const [tokenAddress, settokenAddress] = useState("");
   const [to, setto] = useState("");
   const [valueToken, setValueToken] = useState("");
-  const [debouncedAmount] = useDebounce(valueToken, 500);
+  const [valueNativeCurrency, setValueNativeCurrency] = useState("");
+  const [showNativeCurrency, setshowNativeCurrency] = useState(0);
+  const [debouncedAmount] = useDebounce(valueNativeCurrency, 500);
 
   const {
     config,
@@ -27,11 +31,10 @@ function useTransaction() {
 
     args: [
       to,
-      valueToken
+      valueToken,
       // debouncedAmount && ethers.utils.formatEther(debouncedAmount.toString()),
     ],
   });
-  console.log(datausePrepareContractWrite, "hello");
   //!USE CONTRACT READ
   const { data: contractReadBalance } = useContractRead({
     address: tokenAddress,
@@ -47,29 +50,38 @@ function useTransaction() {
     isError: contractwriteisError,
     reset,
   } = useContractWrite({ ...config });
-  console.log(datacontractWrite, "its write method of contractWrite");
+  //*SEND TRANSACTION FOR NATIVE CURRENCY
+  const { config: sendnative } = usePrepareSendTransaction({
+    request: {
+      to,
+      value: debouncedAmount ? ethers.utils.parseEther(debouncedAmount) : "",
+    },
+  });
+  const { data, sendTransaction,reset:resetNative } = useSendTransaction(sendnative);
+
   //!USE WAIT FOR TRANSACTION
   const {
     data: waitTransaction,
     isLoading: contractWriteLoading,
     isSuccess: contractWriteSuccess,
   } = useWaitForTransaction({
-    hash: datacontractWrite?.hash,
+    hash: showNativeCurrency === 1 ? data?.hash : datacontractWrite?.hash,
   });
-  console.log(waitTransaction);
 
   return {
-    contractwriteError,
-    contractwriteisError,
-    isPrepareError,
-    prepareError,
+  data,
     write,
     setValueToken,
     setto,
     waitTransaction,
     to,
     reset,
-    // debouncedAmount,
+    resetNative,
+    sendTransaction,
+    debouncedAmount,
+    setValueNativeCurrency,
+    showNativeCurrency,
+    setshowNativeCurrency,
     valueToken,
     datacontractWrite,
     contractWriteLoading,

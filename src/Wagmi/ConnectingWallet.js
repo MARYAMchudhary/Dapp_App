@@ -38,12 +38,15 @@ function ConnectingWallet() {
     setto,
     waitTransaction,
     to,
-    // debouncedAmount,
+    sendTransaction,
+    debouncedAmount,
+    setValueNativeCurrency,
+    showNativeCurrency,
+    setshowNativeCurrency,
     valueToken,
-    isSuccess,
     data, //!its native transaction hash
     reset,
-    contractWriteSuccess,
+    resetNative,
     write,
     datacontractWrite,
     tokenAddress,
@@ -68,6 +71,7 @@ function ConnectingWallet() {
       TransactionData.push(waitTransaction);
       localStorage.setItem("blockchain", JSON.stringify(TransactionData) || {});
       reset();
+      resetNative();
     }
   }, [waitTransaction]);
 
@@ -116,101 +120,198 @@ function ConnectingWallet() {
                 </div>
               </>
             )}
+            <Box mt={"1rem"}>
+              {showNativeCurrency === 0 ? (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => {
+                    setshowNativeCurrency(1);
+                  }}
+                >
+                  Send Native Currency
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => {
+                    setshowNativeCurrency(0);
+                    settokenAddress("");
+                  }}
+                >
+                  Send Erc20 Token
+                </Button>
+              )}
+            </Box>
             <Typography
               sx={{ display: "flex", justifyContent: "center" }}
               variant={"h4"}
               mt={2}
             >
-              Send ERC20 Token
+              {showNativeCurrency === 1
+                ? "Send Native Currency"
+                : "Send ERC20 Token"}
             </Typography>
 
-            {contractWriteSuccess && (
-              <div>
-                Successfully minted your NFT!
-                <div>
-                  <a
-                    href={`https://goerli.etherscan.io/tx/${datacontractWrite?.hash}`}
-                  >
-                    GO TO Etherscan
-                  </a>
-                </div>
-              </div>
-            )}
-            <TextField
-              sx={{ marginY: "2rem" }}
-              id="filled-basic"
-              label="token Address"
-              variant="filled"
-              value={tokenAddress}
-              onChange={(e) => settokenAddress(e.target.value)}
-              fullWidth
-            />
-            <TextField
-              sx={{ marginY: "2rem" }}
-              id="filled-basic"
-              label="Reciever Address"
-              variant="filled"
-              value={to}
-              onChange={(e) => setto(e.target.value)}
-              fullWidth
-            />
-            <Box>
-              {ethers.utils.isAddress(to) === true ? (
-                <code
-                  style={{ backgroundColor: "rgb(75, 199, 75)", color: "#000" }}
-                >
-                  your address is Valid
-                </code>
-              ) : (
-                <code
-                  style={{
-                    backgroundColor: "rgb(255, 104, 104)",
-                    color: "#000",
+            {showNativeCurrency === 1 ? (
+              <form>
+                <TextField
+                  sx={{ marginY: "2rem" }}
+                  id="filled-basic"
+                  label="Reciever Address"
+                  variant="filled"
+                  value={to}
+                  onChange={(e) => setto(e.target.value)}
+                  fullWidth
+                />
+                <Box>
+                  {ethers.utils.isAddress(to) === true ? (
+                    <code
+                      style={{
+                        backgroundColor: "rgb(75, 199, 75)",
+                        color: "#000",
+                      }}
+                    >
+                      your address is Valid
+                    </code>
+                  ) : (
+                    <code
+                      style={{
+                        backgroundColor: "rgb(255, 104, 104)",
+                        color: "#000",
+                      }}
+                    >
+                      incorrect Reciever addresss
+                    </code>
+                  )}
+                </Box>
+                <br />
+                <TextField
+                  sx={{ marginY: "1rem" }}
+                  id="filled-basic"
+                  label="Amount"
+                  type={"number"}
+                  variant="filled"
+                  value={debouncedAmount}
+                  onChange={(e) => {
+                    setValueNativeCurrency(e.target.value);
                   }}
-                >
-                  incorrect Reciever addresss
-                </code>
-              )}
-            </Box>
-            <br />
-            <TextField
-              sx={{ marginY: "1rem" }}
-              id="filled-basic"
-              label="Amount"
-              type={"number"}
-              variant="filled"
-              value={valueToken}
-              onChange={(e) => {
-                setValueToken(e.target.value);
-              }}
-              fullWidth
-            />
-            {Number(valueToken) > Number(balance?.formatted) && (
-              <code
-                style={{
-                  backgroundColor: "rgb(255, 104, 104)",
-                  color: "#fff",
-                  marginBottom: "2%",
-                }}
-              >
-                your account have not enough tokens
-              </code>
+                  fullWidth
+                />
+                {Number(debouncedAmount) > Number(balance?.formatted) && (
+                  <code
+                    style={{
+                      backgroundColor: "rgb(255, 104, 104)",
+                      color: "#fff",
+                      marginBottom: "2%",
+                    }}
+                  >
+                    your account have not enough tokens
+                  </code>
+                )}
+                <Box mt={2}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() => {
+                      if (ethers.utils.isAddress(to) === true) {
+                        sendTransaction?.();
+
+                        setto("");
+                      }
+                    }}
+                    disabled={!sendTransaction}
+                  >
+                    Send
+                  </Button>
+                </Box>
+              </form>
+            ) : showNativeCurrency === 0 ? (
+              <form>
+                <TextField
+                  sx={{ marginY: "2rem" }}
+                  id="filled-basic"
+                  label="token Address"
+                  variant="filled"
+                  value={tokenAddress}
+                  onChange={(e) => settokenAddress(e.target.value)}
+                  fullWidth
+                />
+                <TextField
+                  sx={{ marginY: "2rem" }}
+                  id="filled-basic"
+                  label="Reciever Address"
+                  variant="filled"
+                  value={to}
+                  onChange={(e) => setto(e.target.value)}
+                  fullWidth
+                />
+                <Box>
+                  {ethers.utils.isAddress(to) === true ? (
+                    <code
+                      style={{
+                        backgroundColor: "rgb(75, 199, 75)",
+                        color: "#000",
+                      }}
+                    >
+                      your address is Valid
+                    </code>
+                  ) : (
+                    <code
+                      style={{
+                        backgroundColor: "rgb(255, 104, 104)",
+                        color: "#000",
+                      }}
+                    >
+                      incorrect Reciever addresss
+                    </code>
+                  )}
+                </Box>
+                <br />
+                <TextField
+                  sx={{ marginY: "1rem" }}
+                  id="filled-basic"
+                  label="Amount"
+                  type={"number"}
+                  variant="filled"
+                  value={valueToken}
+                  onChange={(e) => {
+                    setValueToken(e.target.value);
+                  }}
+                  fullWidth
+                />
+                {Number(valueToken) > Number(balance?.formatted) && (
+                  <code
+                    style={{
+                      backgroundColor: "rgb(255, 104, 104)",
+                      color: "#fff",
+                      marginBottom: "2%",
+                    }}
+                  >
+                    your account have not enough tokens
+                  </code>
+                )}
+                <Box mt={2}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() => {
+                      write?.();
+                      setValueToken("");
+                      settokenAddress("");
+                      setto("");
+                    }}
+                    disabled={!write}
+                  >
+                    Send
+                  </Button>
+                </Box>
+              </form>
+            ) : (
+              ""
             )}
-            <Box mt={2}>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => {
-                  write?.();
-                  setValueToken("");
-                  settokenAddress("");
-                  setto("");
-                }}
-                disabled={!write}
-              >
-                Send
-              </Button>
-            </Box>
+
             <Box mt={1}>
               <Button
                 variant="contained"
@@ -221,16 +322,6 @@ function ConnectingWallet() {
                 Go to Transaction History
               </Button>
             </Box>
-            {isSuccess && (
-              <div
-                style={{
-                  wordBreak: "break-all",
-                  marginTop: "1rem",
-                }}
-              >
-                Transaction: {JSON.stringify(data.hash)}
-              </div>
-            )}
           </Paper>
         </Container>
       </Box>
@@ -252,10 +343,14 @@ function ConnectingWallet() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {datacontractWrite ? (
+                {datacontractWrite || data ? (
                   <>
                     <TableRow>
-                      <TableCell>{datacontractWrite?.hash}</TableCell>
+                      <TableCell>
+                        {showNativeCurrency === 1
+                          ? data?.hash
+                          : datacontractWrite?.hash}
+                      </TableCell>
                       <TableCell></TableCell>
                       <TableCell></TableCell>
                       <TableCell></TableCell>
