@@ -84,7 +84,9 @@ function ConnectingWallet() {
       <Box mt={2}>
         <Container maxWidth="sm">
           <Paper elevation={6} sx={{ padding: "2rem" }}>
-            {chains.map((chain) => chain.name).includes(chain?.name) ? (
+            {!chain ? (
+              ""
+            ) : chains.map((chain) => chain.name).includes(chain?.name) ? (
               <p style={{ color: "green", fontWeight: "bold" }}>
                 you are connected to correct network
               </p>
