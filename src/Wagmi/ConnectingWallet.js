@@ -43,7 +43,7 @@ function ConnectingWallet() {
     setValueNativeCurrency,
     showNativeCurrency,
     setshowNativeCurrency,
-    valueToken,
+    debouncedValueToken,
     data, //!its native transaction hash
     reset,
     resetNative,
@@ -291,13 +291,13 @@ function ConnectingWallet() {
                   label="Amount"
                   type={"number"}
                   variant="filled"
-                  value={valueToken}
+                  value={debouncedValueToken}
                   onChange={(e) => {
                     setValueToken(e.target.value);
                   }}
                   fullWidth
                 />
-                {Number(valueToken) > Number(balance?.formatted) && (
+                {Number(debouncedValueToken) > Number(balance?.formatted) && (
                   <code
                     style={{
                       backgroundColor: "rgb(255, 104, 104)",

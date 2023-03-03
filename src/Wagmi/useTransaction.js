@@ -18,6 +18,7 @@ function useTransaction() {
   const [valueNativeCurrency, setValueNativeCurrency] = useState("");
   const [showNativeCurrency, setshowNativeCurrency] = useState(0);
   const [debouncedAmount] = useDebounce(valueNativeCurrency, 500);
+  const [debouncedValueToken] = useDebounce(valueToken, 500);
 
   const {
     config,
@@ -27,12 +28,12 @@ function useTransaction() {
   } = usePrepareContractWrite({
     address: tokenAddress,
     abi: ABIGOERLI,
-    functionName: "mint",
+    functionName: "transfer",
 
     args: [
       to,
-      valueToken,
-      // debouncedAmount && ethers.utils.formatEther(debouncedAmount.toString()),
+      // valueToken,
+      debouncedValueToken && ethers.utils.parseEther(debouncedValueToken),
     ],
   });
   //!USE CONTRACT READ
@@ -69,7 +70,7 @@ function useTransaction() {
   });
 
   return {
-  data,
+    data,
     write,
     setValueToken,
     setto,
@@ -82,7 +83,7 @@ function useTransaction() {
     setValueNativeCurrency,
     showNativeCurrency,
     setshowNativeCurrency,
-    valueToken,
+    debouncedValueToken,
     datacontractWrite,
     contractWriteLoading,
     config,
